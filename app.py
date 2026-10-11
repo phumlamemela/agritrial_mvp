@@ -114,6 +114,16 @@ def sync_offline():
     conn.commit()
     conn.close()
     return jsonify({"status": "success", "synced_count": len(records)}), 200
-if __name__ == "__main__":
-  init_sqlite_db()
-  app.run(debug=True)
+
+@app.route('/exit_trial/<int:record_id>', methods=['POST'])
+def exit_trial(record_id):
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM trial_records WHERE id = ?", (record_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    init_sqlite_db()
+    app.run(debug=True)

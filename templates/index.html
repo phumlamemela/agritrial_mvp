@@ -63,6 +63,20 @@
             </fieldset>
 
             <button type="submit" class="submit-btn">Save Trial Record Locally</button>
+            <hr>
+<h2>Existing Trial Records</h2>
+<ul>
+    {% for record in records %}
+        <li>
+            Trial ID: {{ record[0] }} | Farmer: {{ record[1] }}
+            <form action="{{ url_for('exit_trial', record_id=record[0]) }}" method="POST" style="display:inline; margin-left: 10px;">
+                <button type="submit" onclick="return confirm('Are you sure you want to exit/delete this trial record?');">
+                    Exit Trial
+                </button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
         </form>
     </div>
     <script>
