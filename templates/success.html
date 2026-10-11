@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Record Saved</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container" style="text-align: center;">
+        <h2 style="color: #2e7d32;">Trial Record Successfully Logged</h2>
+        <p>Plot ID: <strong>{{ data.plot_id }}</strong> | Variety: <strong>{{ data.variety }}</strong> ({{ data.treatment_group }})</p>
+        <p>Data stored locally in SQLite database, ready for CI analysis and Supabase synchronization.</p>
+        <hr style="margin: 20px 0; border:0; border-top:1px solid #ddd;">
+        <a href="{{ url_for('index') }}" class="submit-btn" style="text-decoration: none; display: inline-block;">Capture Another Record</a>
+    </div>
+</body>
+</html>

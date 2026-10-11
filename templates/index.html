@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AgriTrial OS - Field Data Capture Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>AgriTrial OS</h2>
+        <p class="subtitle">Act 36 of 1947 Group 3 Biostimulant Compliance Capture[cite: 25]</p>
+
+        {% if error %}
+            <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <fieldset>
+                <legend>1. Trial Metadata & Context</legend>
+                <div class="form-group"><label>Farmer Name:</label><input type="text" name="farmer_name" required></div>
+                <div class="form-group"><label>Farm Name:</label><input type="text" name="farm_name" required></div>
+                <div class="form-group"><label>Plot ID:</label><input type="text" name="plot_id" required placeholder="e.g., EP-T001"></div>
+                <div class="form-group"><label>Date (dd/mm):</label><input type="date" name="trial_date" required></div>
+                <div class="form-group"><label>Variety (Crop):</label><input type="text" name="variety" required placeholder="e.g., Grapes / Potatoes"></div>
+                <div class="form-group">
+                    <label>Treatment Group:</label>
+                    <select name="treatment_group" required>
+                        <option value="Control">Control</option>
+                        <option value="Bio stimulant A">Bio stimulant A</option>
+                        <option value="Bio stimulant B">Bio stimulant B</option>
+                        <option value="Bio stimulant C">Bio stimulant C</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Rep (Replication):</label><input type="text" name="rep" required placeholder="e.g., Rep 1"></div>
+                <div class="form-group"><label>Observer:</label><input type="text" name="observer" required></div>
+            </fieldset>
+
+            <fieldset>
+                <legend>2. Plant Metrics (Milestone 1 Variables)</legend>
+                <div class="form-group"><label>Plant Height (cm):</label><input type="number" step="0.01" name="plant_height" required></div>
+                <div class="form-group"><label>Yield (kg/plot):</label><input type="number" step="0.01" name="yield_val" required></div>
+                <div class="form-group"><label>SPAD (Chlorophyll):</label><input type="number" step="0.01" name="spad" required></div>
+                <div class="form-group"><label>Disease (%):</label><input type="number" step="0.01" name="disease_pct" required></div>
+                <div class="form-group"><label>Root Mass (g):</label><input type="number" step="0.01" name="root_mass" required></div>
+            </fieldset>
+
+            <fieldset>
+                <legend>3. Environmental & Soil Readings</legend>
+                <div class="form-group"><label>pH:</label><input type="number" step="0.01" name="ph"></div>
+                <div class="form-group"><label>EC (mS/cm):</label><input type="number" step="0.01" name="ec"></div>
+                <div class="form-group"><label>Dissolved O2 (mg/L):</label><input type="number" step="0.01" name="dissolved_o2"></div>
+                <div class="form-group"><label>Temperature (°C):</label><input type="number" step="0.01" name="temp"></div>
+                <div class="form-group"><label>Humidity (%):</label><input type="number" step="0.01" name="humidity"></div>
+                <div class="form-group"><label>Nitrate (mg/L):</label><input type="number" step="0.01" name="nitrate"></div>
+                <div class="form-group"><label>Phosphate (mg/L):</label><input type="number" step="0.01" name="phosphate"></div>
+            </fieldset>
+
+            <fieldset>
+                <legend>4. Trial Observations</legend>
+                <div class="form-group">
+                    <textarea name="notes" rows="3" placeholder="Enter qualitative field observations..."></textarea>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="submit-btn">Save Trial Record Locally</button>
+        </form>
+    </div>
+    <script>
+  const form = document.querySelector('form');
+
+form.addEventListener('submit', function (event) {
+    if (!navigator.onLine) {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const dataObj = {};
+        formData.forEach((value, key) => { dataObj[key] = value; });
+
+        let pendingRecords = JSON.parse(localStorage.getItem('agri_offline_data')) || [];
+        pendingRecords.push(dataObj);
+        localStorage.setItem('agri_offline_data', JSON.stringify(pendingRecords));
+
+        alert('You are offline. Trial data saved locally and will sync automatically when reconnected.');
+        form.reset();
+    }
+});
+
+window.addEventListener('online', function () {
+    const pendingRecords = JSON.parse(localStorage.getItem('agri_offline_data')) || [];
+    if (pendingRecords.length > 0) {
+        fetch('/sync_offline', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pendingRecords)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.removeItem('agri_offline_data');
+                alert('Internet restored! Offline trial records synced to SQLite database successfully.');
+            } else {
+                alert('Error syncing offline data. Please try again later.');
+            }
+        })
+        .catch(error => {
+            console.error('Sync error:', error);
+            alert('Error syncing offline data. Please try again later.');
+        });
+    }
+});
+    </script>
+</body>
+</html>
