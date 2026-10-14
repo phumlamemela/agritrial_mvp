@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriTrial OS - 7-Section Capture Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #111111;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #1b4332;
+        }
+        .section-box {
+            border: 1px solid #dcdcdc;
+            border-left: 5px solid #2d6a4f;
+            padding: 18px;
+            margin-bottom: 25px;
+            background-color: #fafafa;
+            border-radius: 4px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #000000;
+        }
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid #777777;
+            border-radius: 4px;
+            color: #000000 !important;
+            background-color: #ffffff !important;
+            font-size: 14px;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #666666;
+        }
+        .btn-submit {
+            background-color: #2d6a4f;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-submit:hover {
+            background-color: #1b4332;
+        }
+        .offline-status {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AgriTrial OS - Field Data Capture</h1>
+    <p>Group 3 Biostimulant Compliance & Relational Data Collection</p>
+
+    <div id="offlineAlert" class="offline-status">
+        ⚠️ You are currently offline. Data will be saved locally and synced when online.
+    </div>
+
+    <form action="/submit" method="POST" id="agriForm">
+
+        <!-- SECTION 1: TRIAL SITE -->
+        <div class="section-box">
+            <h2>1. Trial Site Details</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="farmer_name">Farmer Name</label>
+                    <input type="text" id="farmer_name" name="farmer_name" placeholder="e.g., John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="farm_name">Farm Name</label>
+                    <input type="text" id="farm_name" name="farm_name" placeholder="e.g., Green Valley Farm">
+                </div>
+                <div class="form-group">
+                    <label for="site_name">Site Name</label>
+                    <input type="text" id="site_name" name="site_name" placeholder="e.g., Block A Farm">
+                </div>
+                <div class="form-group">
+                    <label for="latitude">Latitude</label>
+                    <input type="text" id="latitude" name="latitude" placeholder="e.g., -33.9249">
+                </div>
+                <div class="form-group">
+                    <label for="longitude">Longitude</label>
+                    <input type="text" id="longitude" name="longitude" placeholder="e.g., 18.4241">
+                </div>
+                <div class="form-group">
+                    <label for="soil_type">Soil Type</label>
+                    <input type="text" id="soil_type" name="soil_type" placeholder="e.g., Sandy Loam">
+                </div>
+                <div class="form-group">
+                    <label for="previous_crop">Previous Crop</label>
+                    <input type="text" id="previous_crop" name="previous_crop" placeholder="e.g., Wheat">
+                </div>
+                <div class="form-group">
+                    <label for="experimental_design">Experimental Design</label>
+                    <input type="text" id="experimental_design" name="experimental_design" placeholder="e.g., Randomized Block">
+                </div>
+                <div class="form-group">
+                    <label for="total_replications">Total Replications</label>
+                    <input type="number" id="total_replications" name="total_replications" placeholder="e.g., 4">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: TRIALS -->
+        <div class="section-box">
+            <h2>2. Trial Information</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="trial_code">Trial Code</label>
+                    <input type="text" id="trial_code" name="trial_code" placeholder="e.g., TR-001" required>
+                </div>
+                <div class="form-group">
+                    <label for="trial_name">Trial Name</label>
+                    <input type="text" id="trial_name" name="trial_name" placeholder="e.g., Biostimulant Efficacy">
+                </div>
+                <div class="form-group">
+                    <label for="target_crop">Target Crop</label>
+                    <input type="text" id="target_crop" name="target_crop" placeholder="e.g., Maize">
+                </div>
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date">
+                </div>
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date">
+                </div>
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label for="objective">Objective</label>
+                    <textarea id="objective" name="objective" rows="2" placeholder="Describe trial goal..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: TREATMENTS -->
+        <div class="section-box">
+            <h2>3. Treatment Details</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="treatment_number">Treatment Number</label>
+                    <input type="number" id="treatment_number" name="treatment_number" placeholder="e.g., 1">
+                </div>
+                <div class="form-group">
+                    <label for="treatment_name">Treatment Name</label>
+                    <input type="text" id="treatment_name" name="treatment_name" placeholder="e.g., BioStim-X High Dosage">
+                </div>
+                <div class="form-group">
+                    <label for="formulation_details">Formulation Details</label>
+                    <input type="text" id="formulation_details" name="formulation_details" placeholder="e.g., Liquid Concentrate">
+                </div>
+                <div class="form-group">
+                    <label for="application_rate">Application Rate</label>
+                    <input type="number" step="0.01" id="application_rate" name="application_rate" placeholder="e.g., 2.5">
+                </div>
+                <div class="form-group">
+                    <label for="rate_unit">Rate Unit</label>
+                    <input type="text" id="rate_unit" name="rate_unit" placeholder="e.g., L/ha">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: PLOTS -->
+        <div class="section-box">
+            <h2>4. Plot & Replication Layout</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="plot_number">Plot Number</label>
+                    <input type="number" id="plot_number" name="plot_number" placeholder="e.g., 101">
+                </div>
+                <div class="form-group">
+                    <label for="replication_number">Replication Number</label>
+                    <input type="number" id="replication_number" name="replication_number" placeholder="e.g., 1">
+                </div>
+                <div class="form-group">
+                    <label for="row_index">Row Index</label>
+                    <input type="number" id="row_index" name="row_index" placeholder="e.g., 2">
+                </div>
+                <div class="form-group">
+                    <label for="column_index">Column Index</label>
+                    <input type="number" id="column_index" name="column_index" placeholder="e.g., 4">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: ASSESSMENT TRAITS -->
+        <div class="section-box">
+            <h2>5. Assessment Traits</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="trait_name">Trait Name</label>
+                    <input type="text" id="trait_name" name="trait_name" placeholder="e.g., Plant Height / Pod Count">
+                </div>
+                <div class="form-group">
+                    <label for="trait_unit">Measurement Unit</label>
+                    <input type="text" id="trait_unit" name="trait_unit" placeholder="e.g., cm / pods per plant">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label for="trait_description">Trait Description</label>
+                    <input type="text" id="trait_description" name="trait_description" placeholder="Brief description of evaluation criteria">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 6: ASSESSMENT DATES -->
+        <div class="section-box">
+            <h2>6. Assessment Schedule</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="assessment_stage">Assessment Stage</label>
+                    <input type="text" id="assessment_stage" name="assessment_stage" placeholder="e.g., Vegetative / Flowering">
+                </div>
+                <div class="form-group">
+                    <label for="scheduled_date">Scheduled Date</label>
+                    <input type="date" id="scheduled_date" name="scheduled_date">
+                </div>
+                <div class="form-group">
+                    <label for="completed_date">Completed Date</label>
+                    <input type="date" id="completed_date" name="completed_date">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 7: MEASUREMENTS -->
+        <div class="section-box">
+            <h2>7. Field Measurements & Yield Metrics</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="year">Year</label>
+                    <input type="number" id="year" name="year" placeholder="e.g., 2026">
+                </div>
+                <div class="form-group">
+                    <label for="replicate">Replicate</label>
+                    <input type="number" id="replicate" name="replicate" placeholder="e.g., 1">
+                </div>
+                <div class="form-group">
+                    <label for="yield_value">Yield Value (kg/ha)</label>
+                    <input type="number" step="0.01" id="yield_value" name="yield_value" placeholder="e.g., 4500.50">
+                </div>
+                <div class="form-group">
+                    <label for="bio_yield">Bio-Yield (kg/ha)</label>
+                    <input type="number" step="0.01" id="bio_yield" name="bio_yield" placeholder="e.g., 8200.00">
+                </div>
+                <div class="form-group">
+                    <label for="pods_per_plant">Pods per Plant</label>
+                    <input type="number" step="0.1" id="pods_per_plant" name="pods_per_plant" placeholder="e.g., 24.5">
+                </div>
+                <div class="form-group">
+                    <label for="measurement_date">Measurement Date</label>
+                    <input type="date" id="measurement_date" name="measurement_date">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Submit Trial Record</button>
+    </form>
+</div>
+
+<script>
+    // Offline detection script
+    function updateOnlineStatus() {
+        const alertBox = document.getElementById('offlineAlert');
+        if (!navigator.onLine) {
+            alertBox.classList.add('status-offline');
+        } else {
+            alertBox.classList.remove('status-offline');
+        }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+</script>
+
+</body>
+</html>
