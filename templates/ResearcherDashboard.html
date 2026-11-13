@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Researcher Dashboard | AgriTrial</title>
+  <style>
+    :root { --ink:#183153; --green:#154b3c; --mint:#e7f5ef; --blue:#e9f2fb; --line:#e2e8ef; }
+    * { box-sizing:border-box; }
+    body { margin:0;background: linear-gradient(180deg, #bfe3f5 0%, #fff0b8 45%, #F2C200 100%); color:var(--ink); font-family:Arial,sans-serif; }
+    .topbar { background:linear-gradient(120deg,#123d34,#20735c); color:white; padding:26px max(22px,calc((100% - 1240px)/2)); }
+    .topbar h1 { margin:0 0 7px; font-size:clamp(24px,3vw,34px); }
+    .topbar p { margin:0; color:#d3e7df; }
+    main { max-width:1240px; margin:24px auto; padding:0 20px 48px; }
+    .filterbar,.card,.stat { background:white; border:1px solid var(--line); border-radius:14px; box-shadow:0 5px 18px #19324b0b; }
+    .filterbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; padding:16px; }
+    label { display:block; margin-bottom:6px; font-size:13px; font-weight:700; }
+    select,input { min-height:40px; padding:9px 11px; border:1px solid #cbd5df; border-radius:8px; font:inherit; }
+    button,.button { border:0; border-radius:8px; padding:11px 16px; background:var(--green); color:white; font-weight:700; cursor:pointer; text-decoration:none; }
+    button:hover,.button:hover { background:#0e392e; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin:18px 0; }
+    .stat { padding:18px; }
+    .stat span { display:block; color:#64748b; font-size:13px; }
+    .stat strong { display:block; margin-top:8px; font-size:26px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    .card { min-width:0; padding:20px; margin:18px 0; }
+    .card h2 { margin:0 0 7px; font-size:19px; }
+    .hint { margin:0 0 14px; color:#64748b; font-size:14px; line-height:1.5; }
+    .chart { display:block; width:100%; height:auto; border-radius:8px; }
+    .table-tools { display:flex; gap:10px; align-items:end; flex-wrap:wrap; margin:14px 0; }
+    .table-wrap { overflow:auto; max-height:520px; border:1px solid var(--line); border-radius:9px; }
+    table { width:100%; border-collapse:collapse; background:white; font-size:13px; }
+    th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+    th { position:sticky; top:0; z-index:1; background:#edf4f1; }
+    tbody tr:hover { background:#f4faf7; }
+    details { margin-top:12px; color:#52657a; font-size:13px; }
+    summary { cursor:pointer; font-weight:700; }
+    .empty { padding:30px; text-align:center; color:#64748b; background:#f8fafc; border-radius:9px; }
+    @media(max-width:800px) { .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Research Insights</h1>
+  <p>Explore yield distribution and relationships across numeric trial traits.</p>
+</header>
+<main>
+  <form class="filterbar" method="get" action="{{ url_for('researcher_dashboard') }}">
+    <div>
+      <label for="trial_code">Filter charts and measurements by trial</label>
+      <select id="trial_code" name="trial_code">
+        <option value="">All trials</option>
+        {% for code in trial_codes %}
+          <option value="{{ code }}" {% if code == selected_trial %}selected{% endif %}>{{ code }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Apply filter</button>
+    {% if selected_trial %}
+      <a class="button" href="{{ url_for('researcher_dashboard') }}">Reset</a>
+    {% endif %}
+  </form>
+
+  <section class="stats">
+    <div class="stat"><span>Trials available</span><strong>{{ trials|length }}</strong></div>
+    <div class="stat"><span>Measurements in view</span><strong>{{ measurements|length }}</strong></div>
+    <div class="stat"><span>Assessment records</span><strong>{{ assessments|length }}</strong></div>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <h2>Yield box plot</h2>
+      <p class="hint">Compare medians, spread, and unusual values across treatments. Points outside the whiskers may be potential outliers for review.</p>
+      <img class="chart" src="{{ url_for('static', filename='researcher_yield_boxplot.png', v=chart_version) }}" alt="Yield box plot by treatment">
+      <details><summary>How to read this chart</summary><p>The line inside each box is the median. The box shows the middle half of observations; whiskers and points show the remaining spread and possible outliers.</p></details>
+    </article>
+
+    <article class="card">
+      <h2>Trait correlation heatmap</h2>
+      <p class="hint">Explore which numeric traits move together in the selected trial data.</p>
+      <img class="chart" src="{{ url_for('static', filename='researcher_correlation_heatmap.png', v=chart_version) }}" alt="Correlation heatmap for numeric traits">
+      <details><summary>How to read this chart</summary><p>Values near 1 indicate traits tend to rise together; values near -1 indicate one tends to rise as the other falls. Correlation shows association, not cause and effect.</p></details>
+    </article>
+  </section>
+
+  <section class="card">
+    <h2>Measurements <span style="color:#64748b;font-size:14px">({{ measurements|length }})</span></h2>
+    <div class="table-tools">
+      <div><label for="measurementSearch">Search visible measurements</label><input id="measurementSearch" type="search" placeholder="Search rows..."></div>
+      <button type="button" id="exportCsv" data-export-url="{{ url_for('download_researcher_csv', trial_code=selected_trial) }}">Download visible rows as CSV</button>
+    </div>
+    {% if measurements %}
+    <div class="table-wrap">
+      <table id="measurementTable">
+        <thead><tr>{% for column in measurements[0].keys() %}<th>{{ column }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for row in measurements %}
+          <tr>{% for column in measurements[0].keys() %}<td>{{ row.get(column, "") }}</td>{% endfor %}</tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="empty">No measurements are available for this filter.</div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Trial records</h2>
+    {% if trials %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr>{% for column in trials[0].keys() %}<th>{{ column }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in trials %}<tr>{% for column in trials[0].keys() %}<td>{{ row.get(column, "") }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    {% else %}<div class="empty">No trial records are available.</div>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Trait assessments</h2>
+    {% if assessments %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr>{% for column in assessments[0].keys() %}<th>{{ column }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in assessments %}<tr>{% for column in assessments[0].keys() %}<td>{{ row.get(column, "") }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    {% else %}<div class="empty">No trait assessments are available.</div>{% endif %}
+  </section>
+</main>
+<a class="button" href="{{ url_for('login') }}">Logout</a>
+<script>
+  const searchBox = document.getElementById("measurementSearch");
+  const measurementTable = document.getElementById("measurementTable");
+  if (searchBox && measurementTable) {
+    searchBox.addEventListener("input", () => {
+      const query = searchBox.value.toLowerCase();
+      measurementTable.querySelectorAll("tbody tr").forEach(row => {
+        row.hidden = !row.innerText.toLowerCase().includes(query);
+      });
+    });
+  }
+
+  const exportButton = document.getElementById("exportCsv");
+  if (exportButton) {
+    exportButton.addEventListener("click", () => {
+      const downloadUrl = new URL(exportButton.dataset.exportUrl, window.location.origin);
+      if (searchBox) downloadUrl.searchParams.set("search", searchBox.value);
+      window.location.href = downloadUrl.toString();
+    });
+  }
+</script>
+</body>
+</html>
