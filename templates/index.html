@@ -1,12 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriTrial OS - 7-Section Capture Form</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        body {
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgriTrial | Capture trial data</title>
+  <style>
+            body {
             font-family: Arial, sans-serif;
             background-color: #f4f7f6;
             color: #111111;
@@ -82,21 +81,17 @@
             color: #721c24;
             display: block;
         }
-    </style>
+    button { padding: 12px 20px; border: 0; border-radius: 6px; background: #1b4332; color: white; font-weight: 700; cursor: pointer; }
+  </style>
 </head>
 <body>
-
-<div class="container">
-    <h1>AgriTrial OS - Field Data Capture</h1>
-    <p>Group 3 Biostimulant Compliance & Relational Data Collection</p>
-
-    <div id="offlineAlert" class="offline-status">
-        ⚠️ You are currently offline. Data will be saved locally and synced when online.
-    </div>
-
-    <form action="/submit" method="POST" id="agriForm">
-
-        <!-- SECTION 1: TRIAL SITE -->
+  <main>
+    <h1>Capture trial data</h1>
+    <div id="offlineAlert" class="offline-status">Offline mode: entries are saved on this device and uploaded after you reconnect. First-time account sign-in must happen while online.</div>
+    {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<p class="offline-status status-offline">{{ message }}</p>{% endfor %}{% endwith %}
+    {% if pending_count %}<p class="offline-status status-offline">{{ pending_count }} submission(s) waiting to sync. Reconnect, then sync below.</p><form method="post" action="{{ url_for('sync_data') }}"><label for="capture_sync_password">Re-enter your password to sync</label><input id="capture_sync_password" type="password" name="password" autocomplete="current-password" required><button type="submit">Sync queued measurements</button></form>{% endif %}
+    <form method="post" action="{{ url_for('submit') }}" enctype="multipart/form-data">
+       <!-- SECTION 1: TRIAL SITE -->
         <div class="section-box">
             <h2>1. Trial Site Details</h2>
             <div class="form-grid">
@@ -110,15 +105,18 @@
                 </div>
                 <div class="form-group">
                     <label for="site_name">Site Name</label>
-                    <input type="text" id="site_name" name="site_name" placeholder="e.g., Block A Farm">
+                    <input type="text" id="site_name" name="site_name" placeholder="e.g., Block A Farm" required>
                 </div>
                 <div class="form-group">
                     <label for="latitude">Latitude</label>
-                    <input type="text" id="latitude" name="latitude" placeholder="e.g., -33.9249">
+                    <input type="number" id="latitude" name="latitude" placeholder="e.g., -33.9249" type="number" step="any">
                 </div>
                 <div class="form-group">
                     <label for="longitude">Longitude</label>
-                    <input type="text" id="longitude" name="longitude" placeholder="e.g., 18.4241">
+                    <input type="number" id="longitude" name="longitude" placeholder="e.g., 18.4241" type="number" step="any">
+                </div>
+                    <button type="button" id="locate">Use my current location</button>
+                    <small id="locmsg"></small>
                 </div>
                 <div class="form-group">
                     <label for="soil_type">Soil Type</label>
@@ -188,7 +186,7 @@
                 </div>
                 <div class="form-group">
                     <label for="treatment_name">Treatment Name</label>
-                    <input type="text" id="treatment_name" name="treatment_name" placeholder="e.g., BioStim-X High Dosage">
+                    <input type="text" id="treatment_name" name="treatment_name" placeholder="e.g., BioStim-X High Dosage" required>
                 </div>
                 <div class="form-group">
                     <label for="formulation_details">Formulation Details</label>
@@ -296,9 +294,11 @@
                 </div>
             </div>
         </div>
-
-        <button type="submit" class="btn-submit">Submit Trial Record</button>
+      <label for="rear-camera">Take a Photo:</label>
+      <input type="file" id="rear-camera" name="photo" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment">
+      <button type="submit">Save trial entry</button>
     </form>
+  </main>
 </div>
 
 <script>
@@ -315,6 +315,28 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 </script>
-
+<script>
+  document.getElementById("locate").addEventListener("click", function () {
+    var msg = document.getElementById("locmsg");
+    if (!navigator.geolocation) {
+      msg.textContent = "This browser cannot find your location. Type the coordinates instead.";
+      return;
+    }
+    msg.textContent = "Finding your location...";
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      document.getElementById("latitude").value = pos.coords.latitude.toFixed(6);
+      document.getElementById("longitude").value = pos.coords.longitude.toFixed(6);
+      msg.textContent = "Location found (accurate to about " + Math.round(pos.coords.accuracy) + " m).";
+    }, function () {
+      msg.textContent = "Could not get your location. Allow location access, or type the coordinates.";
+    }, { enableHighAccuracy: true, timeout: 15000 });
+  });
+</script>
 </body>
 </html>
+
+
+
+
+
+
