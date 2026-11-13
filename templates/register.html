@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Register</title>
+  <style>
+    body { background: linear-gradient(180deg, #bfe3f5 0%, #fff0b8 45%, #F2C200 100%); margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #f4f6f9; color: #183153; }
+    h1 { margin-top: 0; } label { display: block; margin: 18px 0 6px; font-weight: 600; }
+    input, select, button { box-sizing: border-box; width: 100%; padding: 11px; border: 1px solid #b8c4d3; border-radius: 6px; font: inherit; }
+    button { margin-top: 22px; border: 0; background: #154b3c; color: white; cursor: pointer; font-weight: 700; }
+    .note { color: #667085; font-size: 13px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main>
+  <h1>Create an account</h1>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<p class="note">{{ message }}</p>{% endfor %}
+  {% endwith %}
+
+  <form method="post" action="{{ url_for('register') }}">
+    <label for="name">Display Name</label>
+    <input id="name" name="name" required>
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required>
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" required>
+
+    <label for="role">Choose your role</label>
+    <select id="role" name="role" required>
+      <option value="" disabled selected>Select a role</option>
+      <option value="farmer">Farmer</option>
+      <option value="researcher">Researcher</option>
+      <option value="uwc">UWC</option>
+      <option value="su_arise">SU ARISE</option>
+      <option value="investor">Investor</option>
+      <option value="funder">Funder</option>
+      <option value="partner">Partner</option>
+      <option value="dalrrd">DALRRD</option>
+    </select>
+    <p class="note">After signing in, you will go to the dashboard for your role.</p>
+    <button type="submit">Create account</button>
+  </form>
+
+  <a href="{{ url_for('login') }}">Back to login</a>
+  </main>
+</body>
+</html>
+
