@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgriTrial | Sign in</title>
+  <style>
+    body { background: linear-gradient(180deg, #bfe3f5 0%, #fff0b8 45%, #F2C200 100%); margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; color: #1b4332; }
+    main { width: min(380px, calc(100% - 40px)); padding: 32px; border-radius: 12px; box-shadow: 0 4px 18px #18315320; }
+    h1 { margin-top: 0; } label { display: block; margin: 18px 0 6px; font-weight: 600; }
+    input, select, button { box-sizing: border-box; width: 100%; padding: 11px; border: 1px solid #b8c4d3; border-radius: 6px; font: inherit; }
+    button { margin-top: 22px; border: 0; background: #154b3c; color: white; cursor: pointer; font-weight: 700; }
+    .note { color: #667085; font-size: 13px; line-height: 1.5; }
+    .button {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 12px 20px;
+  border-radius: 6px;
+  background: #154b3c;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/static/Eduponics.png" alt="Eduponics logo" width="140">
+    <h1>AgriTrial</h1>
+    <p>Sign in to open your AgriTrial dashboard.</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<p class="note">{{ message }}</p>{% endfor %}
+    {% endwith %}
+    <form method="post" action="{{ url_for('login') }}">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required>
+<label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <label for="remember">Remember me</label>
+      <input id="remember" name="remember" type="checkbox">
+<button type="submit">Continue</button>
+    </form>
+    <a class="button" href="{{ url_for('register') }}">Register</a>
+    <p class="note">Protected by Supabase Auth. Your credentials are fully encrypted and securely stored.</p>
+  </main>
+</body>
+</html>
+
+
