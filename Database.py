@@ -11,6 +11,7 @@ class CanolaDatabase:
     def setup_tables(self, reset=False):
         if reset:
             self.cur.execute("DROP TABLE IF EXISTS assessment_data")
+            self.cur.execute("DROP TABLE IF EXISTS assessment_schedule")
             self.cur.execute("DROP TABLE IF EXISTS plots")
             self.cur.execute("DROP TABLE IF EXISTS measurement")
             self.cur.execute("DROP TABLE IF EXISTS assessment_traits")
@@ -93,12 +94,25 @@ class CanolaDatabase:
             FOREIGN KEY (plot_id) REFERENCES plots(plot_id),
             FOREIGN KEY (trait_id) REFERENCES assessment_traits(trait_id)
         )""")
+        self.cur.execute("""CREATE TABLE IF NOT EXISTS assessment_schedule (
+            schedule_id INTEGER PRIMARY KEY,
+            trial_id INTEGER NOT NULL,
+            trait_id INTEGER,
+            assessment_stage TEXT,
+            scheduled_date TEXT,
+            completed_date TEXT,
+            created_by TEXT,
+            FOREIGN KEY (trial_id) REFERENCES trial(trial_id),
+            FOREIGN KEY (trait_id) REFERENCES assessment_traits(trait_id)
+        )""")
+
         # This is how I'll link the csv measurements with the new tables
         self.cur.execute("""CREATE TABLE IF NOT EXISTS measurement (
             measurement_id INTEGER PRIMARY KEY,
             treatment_id INTEGER NOT NULL,
             year INTEGER,
             replicate INTEGER,
+            measurement_date TEXT,
             yield_value REAL,
             bio_yield REAL,
             pod_per_plant REAL,
@@ -122,9 +136,20 @@ class CanolaDatabase:
             ionic_leakage REAL,
             prolin REAL,
             potassium_sodium_ratio REAL,
-            FOREIGN KEY (treatment_id) REFERENCES treatment(treatment_id),
+
+            synced INTEGER DEFAULT 0,
+
+            FOREIGN KEY (treatment_id)
+            REFERENCES treatment(treatment_id),
+
             UNIQUE (treatment_id, year, replicate)
-        )""")
+        )
+        """)
+        measurement_columns = {
+            row[1] for row in self.cur.execute("PRAGMA table_info(measurement)").fetchall()
+        }
+        if "measurement_date" not in measurement_columns:
+            self.cur.execute("ALTER TABLE measurement ADD COLUMN measurement_date TEXT")
         self.conn.commit()
 
     def insert_trial_data(self):
@@ -320,7 +345,7 @@ class CanolaDatabase:
             if missing:
                 raise ValueError(f"CSV is missing expected columns: {missing}")
  
-            for line_no, row in enumerate(reader, start=2):   # line 1 = header
+            for line_no, row in enumerate(reader, start=2):   
                 rows_read += 1
                 def get_value(column):
                     value = row.get(column) 
@@ -436,11 +461,15 @@ class CanolaDatabase:
         self.conn.commit()
         print(f"Imported {imported} rows, skipped {skipped}.")
 if __name__ == "__main__":
-       import os
-       BASE = os.path.dirname(os.path.abspath(__file__))
-       csv_path = os.path.join(BASE, "AgriTrial+Data+Canola.csv")
-       db = CanolaDatabase(os.path.join(BASE, "canola.db"))
-       db.setup_tables(reset=True)
-       db.insert_trial_data()
-       db.import_csv(csv_path)
-       print("CSV data imported successfully.")
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(base_dir, "AgriTrial+Data+Canola.csv")
+    db = CanolaDatabase(os.path.join(base_dir, "canola.db"))
+    try:
+        # Keep existing local records. Set reset=True only when intentionally rebuilding.
+        db.setup_tables(reset=False)
+        db.insert_trial_data()
+        db.import_csv(csv_path)
+        print("CSV data imported successfully.")
+    finally:
+        db.conn.close()
