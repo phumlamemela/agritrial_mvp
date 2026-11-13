@@ -1,17 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Record Saved</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="container" style="text-align: center;">
-        <h2 style="color: #2e7d32;">Trial Record Successfully Logged</h2>
-        <p>Plot ID: <strong>{{ data.plot_id }}</strong> | Variety: <strong>{{ data.variety }}</strong> ({{ data.treatment_group }})</p>
-        <p>Data stored locally in SQLite database, ready for CI analysis and Supabase synchronization.</p>
-        <hr style="margin: 20px 0; border:0; border-top:1px solid #ddd;">
-        <a href="{{ url_for('index') }}" class="submit-btn" style="text-decoration: none; display: inline-block;">Capture Another Record</a>
-    </div>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AgriTrial | Saved</title></head>
+<body style="font-family:Arial,sans-serif;max-width:640px;margin:60px auto;padding:20px;color:#154b3c">
+  <h1>Trial entry saved</h1>
+  <p>Plot ID: {{ data.plot_id }}</p>
+  <p>Crop / variety: {{ data.variety }}</p>
+  <p>Treatment: {{ data.treatment_group }}</p>
+  <p><a href="{{ url_for('capture') }}">Enter another record</a></p>
 </body>
 </html>
